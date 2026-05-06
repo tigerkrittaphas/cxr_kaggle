@@ -116,7 +116,14 @@ def balance_classes(x_train, y_train, seed=42):
 def prepare_datasets(dataset_path, test_size=0.1, valid_size=0.2, random_state=42):
     """Load all labeled data, split into train/valid/test, and one-hot encode labels."""
     train_data = load_data(os.path.join(dataset_path, 'train'))
-    valid_data = load_data(os.path.join(dataset_path, 'val'))
+
+    val_path = os.path.join(dataset_path, 'val')
+    if os.path.isdir(val_path):
+        valid_data = load_data(val_path)
+    else:
+        print(f'No val/ directory found at {val_path}, using train/ data only.')
+        valid_data = []
+
     all_data = train_data + valid_data
 
     train_pool, test_split = train_test_split(all_data, test_size=test_size, random_state=random_state)
@@ -138,16 +145,17 @@ def prepare_datasets(dataset_path, test_size=0.1, valid_size=0.2, random_state=4
     return x_train, y_train, x_valid, y_valid, x_test, y_test, y_test_onehot
 
 
-def augment_data(x_train, y_train, multiplier=2, seed=42):
+def augment_data(x_train, y_train, multiplier=2, seed=42, **datagen_kwargs):
     """Pre-generate augmented data and combine with originals for reproducible training."""
-    datagen = ImageDataGenerator(
-        rotation_range=40,
+    defaults = dict(
+        rotation_range=20,
         width_shift_range=0.2,
         height_shift_range=0.2,
-        shear_range=0.2,
         zoom_range=0.2,
-        horizontal_flip=True
+        horizontal_flip=False,
     )
+    defaults.update(datagen_kwargs)
+    datagen = ImageDataGenerator(**defaults)
 
     np.random.seed(seed)
     aug_images = []

@@ -8,7 +8,11 @@ Usage:
 """
 
 import argparse
+import multiprocessing
 import os
+
+os.environ['OBJC_DISABLE_INITIALIZE_FORK_SAFETY'] = 'YES'
+multiprocessing.set_start_method('spawn', force=True)
 
 import numpy as np
 import matplotlib
